@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Tab Sleeper",
+  "version": "1.0.0",
+  "description": "For managing your tabs and memory using the built-in Chrome apis.",
+  "permissions": ["storage", "tabs", "activeTab", "contextMenus"],
+  "action": {
+    "default_popup": "popup/popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}
