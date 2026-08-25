@@ -20,6 +20,17 @@ To try it out, simply clone this repo, and go to chrome://extensions/, click Loa
 22/08/2026 - Basic feature, tab discard selection works.
 
 
+## TODO
+
+- More flexible new tab behaviour (can be chrome://newtab)
+- Better indication for tabs that have been offloaded; shrunk logo with dotted circular outline like the native Chrome memory manager (maybe need to inject content script for this to fetch the icon and scale/modify it? This is because chrome.tabs.discard doesn't seem to trigger the UI change like the built-in memory saver.) 
+- Background auto-discard with extensive but still intuitive behavioural customizability
+- Settings page for the auto-discard and other behaviour
+
+Speculative:
+- Settings in format that can be exported/imported
+- Simple in-browser machine learning model, rl-inspired but probably simpler
+
 ## Other
 
 If anyone has feedback, feel free to open an issue or something.
