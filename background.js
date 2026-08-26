@@ -27,6 +27,8 @@ function isFallbackTab(url, fallbackUrls) {
 
 const isRestrictedlUrl = (url) => url.startsWith("chrome://") || url.startsWith("edge://");
 
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 chrome.runtime.onInstalled.addListener(async () => {
   // Seed default settings on initial install without overwriting user choices on update
   const current = await chrome.storage.sync.get(Object.keys(DEFAULT_SETTINGS));
@@ -41,6 +43,79 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 async function generateSleepingFavicon(pageUrl) {
+  // Using Chrome's internial favicon API
+  const favUrl = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(pageUrl)}&size=32`;
+  const response = await fetch(favUrl);
+  const blob = await response.blob();
+  const bitmap = await createImageBitmap(blob);
+  
+  const canvas = new OffscreenCanvas(32, 32);
+  const ctx = canvas.getContext('2d');
+
+  // Default appearance: grey dot, shrunk faded logo
+  ctx.filter = "saturate(0.3)";
+  ctx.globalAlpha = 0.5;
+  ctx.drawImage(bitmap, 0, 0, 32, 32);  // or 4, 4, 24, 24
+  
+  ctx.filter = "none";
+  ctx.globalAlpha = 1;
+  ctx.fillStyle="rgb(170, 170, 170)";
+  ctx.arc(28, 28, 5, 0, 2*Math.PI);
+  ctx.fill();
+  
+  // canvas -> blob -> base64 data URL
+  const outBlob = await canvas.convertToBlob({ type: 'image/png' });
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.readAsDataURL(outBlob);
+  });
+}
+
+// Function injected into the tab to update the DOM
+function injectFavicon(dataUrl) {
+  try {
+    const existingIcons = document.querySelectorAll("link[rel*='icon']");
+    existingIcons.forEach(el => el.remove());
+
+    const link = document.createElement("link");
+    link.type = "image/png";
+    link.rel = "icon";
+    link.href = dataUrl;
+    document.head.appendChild(link);
+
+    console.log("[Extension] Sleeping favicon successfully injected.");
+    return { success: true, countRemoved: existingIcons.length };
+  } catch (err) {
+    console.error("[Extension] Failed to inject favicon:", err);
+    return { success: false, error: err.message };
+  }
+}
+
+function waitForFaviconUpdate(tabId, timeoutMs = 1000) {
+  return new Promise((resolve) => {
+    let timer;
+    const startTime = performance.now();
+
+    const listener = (updatedTabId, changeInfo) => {
+      // When the browser registers the new favicon, it fires this event
+      if (updatedTabId === tabId && changeInfo.favIconUrl) {
+        chrome.tabs.onUpdated.removeListener(listener);
+        clearTimeout(timer);
+        const elapsed = performance.now() - startTime;
+        console.log(`Favicon updated in ${elapsed.toFixed(2)}ms`);
+        resolve(true);
+      }
+    };
+    
+    chrome.tabs.onUpdated.addListener(listener);
+    
+    // Fallback timeout just in case the event fails to fire
+    timer = setTimeout(() => {
+      chrome.tabs.onUpdated.removeListener(listener);
+      resolve(false); 
+    }, timeoutMs);
+  });
 }
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
@@ -78,24 +153,37 @@ if (activeTab) {
       await chrome.tabs.create({ windowId, active: true });
     }
   }
-  // Discard all targeted tabs
-  for (const targetTab of targetTabs) {
-    if (targetTab.id) {
-      try {
-        if (!isRestrictedlUrl) {
-          const sleepingIconDataUrl = await generateSleepingFavicon(targetTab.url);
-          await chrome.scripting.executeScript({
-            target: { tabId: targetTab.id },
-            func: injectFavicon,
-            args: [sleepingIconDataUrl]
-          });
-          await new Promise(resolve => setTimeout(resolve, 150));
-        }
 
-        await chrome.tabs.discard(targetTab.id);
-      } catch (err) {
-        console.warn(`Failed to discard tab ID ${targetTab.id}:`, err);
+  // Process all targeted tabs in parallel
+  const discardPromises = targetTabs.map(async (targetTab) => {
+    if (!targetTab.id) return;
+
+    try {  // to inject the favicon
+      if (!isRestrictedlUrl(targetTab.url)) {
+        const sleepingIconDataUrl = await generateSleepingFavicon(targetTab.url);
+        
+        // Set up listener for changeInfo.favIconUrl on Chrome's part: before injection to avoid race conditions 
+        const updatePromise = waitForFaviconUpdate(targetTab.id, 1000);
+
+        await chrome.scripting.executeScript({
+          target: { tabId: targetTab.id },
+          func: injectFavicon,
+          args: [sleepingIconDataUrl]
+        });
+
+        const updateFired = await updatePromise; 
+        if (updateFired) await delay(500);  // being conservative
       }
+    } catch (err) {
+      console.warn(`Failed to inject favicon for tab ID ${targetTab.id}:`, err);
     }
-  }
+
+    try {  // to discard the tab
+      await chrome.tabs.discard(targetTab.id);
+    } catch (err) {
+      console.warn(`Failed to discard tab ID ${targetTab.id}:`, err);
+    }
+  });
+
+  await Promise.all(discardPromises);
 });
