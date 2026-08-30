@@ -10,7 +10,7 @@ export function injectFavicon(dataUrl) {
     link.href = dataUrl;
     document.head.appendChild(link);
 
-    console.log("[Extension] Sleeping favicon successfully injected.");
+    console.log("[Extension] Sleeping favicon successfully injected.");  // Note: only visible in the page
     return { success: true, countRemoved: existingIcons.length };
   } catch (err) {
     console.error("[Extension] Failed to inject favicon:", err);
@@ -19,7 +19,7 @@ export function injectFavicon(dataUrl) {
 }
 
 // Helper function, returns true if success, false if timeout 
-// (note: doesn't actually do much and resolves in ~20 ms but chrome takes ~300 ms to update icons)
+// (note: not actually effective, resolves in ~20 ms while Chrome ui rendering takes ~300 ms to update, but it still shows the injection step passed)
 export function waitForFaviconUpdate(tabId, timeoutMs = 1000) {
   return new Promise((resolve) => {
     let timer;
