@@ -22,6 +22,29 @@ To try it out, simply clone this repo, and go to chrome://extensions/, click Loa
 
 ## TODO
 
+Planned Structure:
+tab-nap-extension/
+├── manifest.json
+├── background/
+│   ├── background.js     # onInstalled, onClicked
+│   ├── discard.js        # handle discard
+│   └── auto-discard.js   # or mlPredictor, etc.
+├── shared/
+│   ├── constants.js      # DEFAULT_SETTINGS, etc.
+│   └── url.js            # matchesPattern, isFallbackTab
+├── favicon/
+│   ├── generate.js       # generateSleepingFavicon
+│   └── inject.js         # injectFavicon
+├── popup/
+│   ├── popup.html
+│   ├── popup.js
+│   └── popup.css
+├── options/              # Future features
+│   ├── options.html
+│   ├── options.css
+│   └── options.js
+└── assets/icons/
+
 - More flexible new tab behaviour (can be chrome://newtab)
 - Better indication for tabs that have been offloaded; shrunk logo with dotted circular outline like the native Chrome memory manager (maybe need to inject content script for this to fetch the icon and scale/modify it? This is because chrome.tabs.discard doesn't seem to trigger the UI change like the built-in memory saver.) 
 - Background auto-discard with extensive but still intuitive behavioural customizability
