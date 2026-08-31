@@ -33,20 +33,19 @@ export async function discardTabs(targetTabs) {
     if (!targetTab.id) return;
 
     try {  // Inject favicon
-      if (!isRestrictedUrl(targetTab.url)) {
+      // Skip favicon for globe/already-sleeping tabs to avoid stick/fade
+      if (!isRestrictedUrl(targetTab.url) && targetTab.favIconUrl && !targetTab.favIconUrl.startsWith("data:")) {
         const sleepingIconDataUrl = await generateSleepingFavicon(targetTab.url);
-        
-        // Set up listener for changeInfo.favIconUrl on Chrome's part: before injection to avoid race conditions 
-        const updatePromise = waitForFaviconUpdate(targetTab.id, 1000);
-
-        await chrome.scripting.executeScript({
-          target: { tabId: targetTab.id },
-          func: injectFavicon,
-          args: [sleepingIconDataUrl]
-        });
-
-        const updateFired = await updatePromise; 
-        if (updateFired) await delay(500);  // Needed due to updatePromise not actually registering.
+        if (sleepingIconDataUrl) {
+          const updatePromise = waitForFaviconUpdate(targetTab.id, 1000);
+          await chrome.scripting.executeScript({
+            target: { tabId: targetTab.id },
+            func: injectFavicon,
+            args: [sleepingIconDataUrl]
+          });
+          const updateFired = await updatePromise;
+          if (updateFired) await delay(500);
+        }
       }
     } catch (err) {
       console.warn(`Failed to inject favicon for tab ID ${targetTab.id}:`, err);
