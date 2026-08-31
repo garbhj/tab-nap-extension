@@ -39,5 +39,5 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 
   // Discard all targeted tabs
-  discardTabs(targetTabs);
+  await discardTabs(targetTabs);
 });

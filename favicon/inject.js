@@ -19,7 +19,8 @@ export function injectFavicon(dataUrl) {
 }
 
 // Helper function, returns true if success, false if timeout 
-// (note: not actually effective, resolves in ~20 ms while Chrome ui rendering takes ~300 ms to update, but it still shows the injection step passed)
+// (note: not actually effective for timing, resolves in ~20 ms while Chrome UI rendering takes ~200-300 ms to update the icon, 
+// but it still shows the injection step passed and was recognized by Chrome)
 export function waitForFaviconUpdate(tabId, timeoutMs = 1000) {
   return new Promise((resolve) => {
     let timer;
