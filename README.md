@@ -31,6 +31,7 @@ tab-nap-extension/
 │   └── auto-discard.js   # or mlPredictor, etc.
 ├── shared/
 │   ├── constants.js      # DEFAULT_SETTINGS, etc.
+│   ├── storage.js        # Thin wrapper & callback function for chrome.storage.sync
 │   └── url.js            # matchesPattern, isFallbackTab
 ├── favicon/
 │   ├── generate.js       # generateSleepingFavicon

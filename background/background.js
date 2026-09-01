@@ -1,14 +1,13 @@
 // Background service worker (MV3).
 // Seeds default state on install and forwards toggle updates to active tabs.
 
-import { DEFAULT_SETTINGS } from '../shared/constants.js';
+import { getSettings } from '../shared/storage.js';
 import { handleActiveTabFocus, discardTabs } from './discard.js';
 
 chrome.runtime.onInstalled.addListener(async () => {
   // Seed default settings on initial install without overwriting user choices on update
-  const current = await chrome.storage.sync.get(Object.keys(DEFAULT_SETTINGS));
-  await chrome.storage.sync.set({ ...DEFAULT_SETTINGS, ...current });
-  // await chrome.storage.sync.set(DEFAULT_SETTINGS);  // use this to override the default settings
+  const mergedSettings = await getSettings();
+  await chrome.storage.sync.set(mergedSettings);
 
   chrome.contextMenus.create({
     id: "discard-tab-action",
@@ -21,7 +20,7 @@ chrome.runtime.onInstalled.addListener(async () => {
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId !== "discard-tab-action" || !tab) return;
 
-  const settings = { ...DEFAULT_SETTINGS, ...(await chrome.storage.sync.get())};
+  const settings = await getSettings();
 
   const windowId = tab.windowId;
   const allTabs = await chrome.tabs.query({ windowId });
