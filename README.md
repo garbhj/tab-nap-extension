@@ -58,3 +58,8 @@ Speculative:
 ## Other
 
 If anyone has feedback, feel free to open an issue or something.
+
+## License
+MIT
+
+Icons used in this project are provided by Feather Icons, which is licensed under the MIT License.

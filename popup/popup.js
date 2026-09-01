@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'ytShortsDislikeEnabled';
+const settings = document.getElementById('settings-btn')
 const toggle = document.getElementById('toggle');
 
 function setUi(enabled) {
@@ -15,5 +16,14 @@ toggle.addEventListener('click', async () => {
   await chrome.storage.sync.set({ [STORAGE_KEY]: next });
   setUi(next);
 });
+
+settings.addEventListener('click', () => {
+  if (chrome.runtime.openOptionsPage) {
+    chrome.runtime.openOptionsPage();
+  } else {
+    window.open(chrome.runtime.getURL('options.html'));
+  }
+});
+
 
 init();
