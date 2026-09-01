@@ -36,7 +36,7 @@ body {
 }
 
 .icon-btn svg {
-  transition: transform 140ms ease-in-out;
+  transition: transform 200ms ease-in-out;
 }
 
 .icon-btn:hover {
@@ -46,7 +46,7 @@ body {
 
 /* Rotate the SVG on button hover */
 .icon-btn:hover svg {
-  transform: rotate(90deg);
+  transform: rotate(120deg);
 }
 
 .title {
