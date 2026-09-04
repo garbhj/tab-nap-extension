@@ -1,7 +1,7 @@
 * { box-sizing: border-box; }
 
 body {
-  width: 260px;
+  width: 320px;
   margin: 0;
   padding: 14px 14px 12px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -113,4 +113,267 @@ body {
   font-size: 11px;
   line-height: 1.4;
   text-align: center;
+}
+
+/* --- Actions --- */
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.btn {
+  flex: 1;
+  appearance: none;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  border-radius: 6px;
+  border: 1px solid #e3e3e3;
+  background: #fff;
+  color: #1f1f1f;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease, opacity 120ms ease;
+}
+
+.btn:hover {
+  background: #f5f5f5;
+  border-color: #d0d0d0;
+}
+
+.btn:active {
+  background: #eee;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #1f1f1f;
+  color: #fff;
+  border-color: #1f1f1f;
+}
+
+.btn-primary:hover {
+  background: #333;
+  border-color: #333;
+  color: #fff;
+}
+
+.btn-danger {
+  background: #fff;
+  color: #c01c1c;
+  border-color: #e5c2c2;
+}
+
+.btn-danger:hover {
+  background: #fff0f0;
+  border-color: #d9a5a5;
+  color: #a81616;
+}
+
+/* --- Windows / Groups panel (collapsible scaffold) --- */
+.panel {
+  margin-top: 12px;
+  border: 1px solid #e3e3e3;
+  border-radius: 8px;
+  background: #fafafa;
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  background: #fff;
+  border-bottom: 1px solid #e3e3e3;
+}
+
+.panel-title {
+  font-weight: 600;
+  font-size: 12px;
+  color: #1f1f1f;
+}
+
+.panel-meta {
+  font-size: 11px;
+  color: #999;
+  font-weight: 400;
+}
+
+.window-list {
+  max-height: 240px;
+  overflow-y: auto;
+  background: #fff;
+}
+
+.window {
+  border-bottom: 1px solid #eee;
+}
+
+.window:last-child {
+  border-bottom: none;
+}
+
+.window-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  color: #1f1f1f;
+  background: #fff;
+}
+
+.window-summary::-webkit-details-marker { display: none; }
+
+.window-summary::before {
+  content: "▸";
+  font-size: 10px;
+  color: #888;
+  display: inline-block;
+  transition: transform 120ms ease;
+}
+
+details[open] > .window-summary::before {
+  transform: rotate(90deg);
+}
+
+.win-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.win-meta {
+  font-size: 11px;
+  color: #888;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.group-list {
+  padding: 0 0 6px 0;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+}
+
+.group {
+  margin: 6px 8px 0;
+  border: 1px solid #e9e9e9;
+  border-radius: 6px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.group-ungrouped {
+  border-style: dashed;
+}
+
+.group-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  color: #333;
+}
+
+.group-summary::-webkit-details-marker { display: none; }
+
+.group-summary::before {
+  content: "▸";
+  font-size: 9px;
+  color: #999;
+  display: inline-block;
+  transition: transform 120ms ease;
+}
+
+details.group[open] > .group-summary::before {
+  transform: rotate(90deg);
+}
+
+.group-summary--static {
+  cursor: default;
+}
+
+.group-summary--static::before {
+  content: none;
+}
+
+.group-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+.group-label {
+  flex: 1;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.group-meta {
+  font-size: 11px;
+  color: #888;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.tab-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid #f0f0f0;
+}
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px 5px 24px;
+  font-size: 12px;
+  color: #333;
+  border-top: 1px solid #f5f5f5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.tab-item:first-child {
+  border-top: none;
+}
+
+.tab-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.is-discarded {
+  color: #888;
+  font-style: italic;
+}
+
+.empty-hint {
+  padding: 10px;
+  margin: 0;
 }

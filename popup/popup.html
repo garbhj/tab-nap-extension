@@ -18,13 +18,77 @@
       </svg>
     </button>
   </div>
-  <p class="subtitle">A more convenient way to discard tabs. Right-click on a tab to discard it.</p>
+  <p class="subtitle">A more convenient way to discard tabs. Right-click on a tab to discard it, or use an option below.</p>
+
+  <div class="actions" aria-label="Discard actions">
+    <button id="discard-inactive" class="btn btn-primary" type="button" title="Discard all inactive (non-active) tabs">Discard inactive</button>
+    <button id="discard-all" class="btn btn-danger" type="button" title="Discard all tabs except the active one">Discard all</button>
+  </div>
+
   <label class="row">
     <span class="label">Auto</span>
     <button id="toggle" class="switch" role="switch" aria-checked="false" aria-label="Toggle extension">
       <span class="knob"></span>
     </button>
   </label>
+
+  <!-- Scaffolding for windows → tab groups → tabs (collapsible). JS will populate #window-list dynamically. -->
+  <section class="panel" id="overview" aria-label="Windows and tab groups">
+    <div class="panel-header">
+      <span class="panel-title">Windows & Groups</span>
+      <span class="panel-meta" id="overview-meta"></span>
+    </div>
+    <div class="window-list" id="window-list">
+      <!-- Example scaffold: window containing groups, groups containing tabs. Replace with dynamic rendering. -->
+      <details class="window" open>
+        <summary class="window-summary">
+          <span class="win-label">Window 1</span>
+          <span class="win-meta">3 tabs · 1 group</span>
+        </summary>
+        <div class="group-list">
+          <details class="group" open>
+            <summary class="group-summary">
+              <span class="group-dot" style="background:#8ab4f8"></span>
+              <span class="group-label">Example group</span>
+              <span class="group-meta">2 tabs</span>
+            </summary>
+            <ul class="tab-list">
+              <li class="tab-item"><span class="tab-title">Example tab title</span></li>
+              <li class="tab-item is-discarded"><span class="tab-title">Discarded tab</span></li>
+            </ul>
+          </details>
+          <div class="group group-ungrouped">
+            <div class="group-summary group-summary--static">
+              <span class="group-label">Ungrouped</span>
+              <span class="group-meta">1 tab</span>
+            </div>
+            <ul class="tab-list">
+              <li class="tab-item"><span class="tab-title">Another tab</span></li>
+            </ul>
+          </div>
+        </div>
+      </details>
+      <details class="window">
+        <summary class="window-summary">
+          <span class="win-label">Window 2</span>
+          <span class="win-meta">1 tab</span>
+        </summary>
+        <div class="group-list">
+          <div class="group group-ungrouped">
+            <div class="group-summary group-summary--static">
+              <span class="group-label">Ungrouped</span>
+              <span class="group-meta">1 tab</span>
+            </div>
+            <ul class="tab-list">
+              <li class="tab-item"><span class="tab-title">Solo tab</span></li>
+            </ul>
+          </div>
+        </div>
+      </details>
+    </div>
+    <p class="hint empty-hint" id="empty-hint" hidden>No windows to display.</p>
+  </section>
+
   <script src="popup.js"></script>
 </body>
 </html>
