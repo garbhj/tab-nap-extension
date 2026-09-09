@@ -20,9 +20,25 @@ To try it out, simply clone this repo, and go to chrome://extensions/, click Loa
 22/08/2026 - Basic feature, tab discard selection works.
 
 
-## TODO
 
-Planned Structure:
+## TODO
+- More flexible new tab behaviour (can be chrome://newtab)
+- Better indication for tabs that have been offloaded; shrunk logo with dotted circular outline like the native Chrome memory manager (maybe need to inject content script for this to fetch the icon and scale/modify it? This is because chrome.tabs.discard doesn't seem to trigger the UI change like the built-in memory saver.) 
+- Background auto-discard with extensive but still intuitive behavioural customizability
+- Settings page for the auto-discard and other behaviour
+
+### FIRST RELEASE CHECKPOINT GOALS
+- Options page working: jump mode, avoid discarded, try replace all icons, avoid globe icons, or not replace at all
+- Auto-discard working: NO tab weighting or prediction, just Inactive ___ min -> discard if (total active) > (set number)
+- Options page: Settings, 2-tier for inactive ___ min, and set number 
+- Batch discard from popup: discard all, discard inactive (by inactive ___ min above).
+
+Speculative:
+- Settings in format that can be exported/imported
+- Simple in-browser machine learning model, rl-inspired but probably simpler
+
+
+## Structure:
 tab-nap-extension/
 ├── manifest.json
 ├── background/
@@ -45,15 +61,6 @@ tab-nap-extension/
 │   ├── options.css
 │   └── options.js
 └── assets/icons/
-
-- More flexible new tab behaviour (can be chrome://newtab)
-- Better indication for tabs that have been offloaded; shrunk logo with dotted circular outline like the native Chrome memory manager (maybe need to inject content script for this to fetch the icon and scale/modify it? This is because chrome.tabs.discard doesn't seem to trigger the UI change like the built-in memory saver.) 
-- Background auto-discard with extensive but still intuitive behavioural customizability
-- Settings page for the auto-discard and other behaviour
-
-Speculative:
-- Settings in format that can be exported/imported
-- Simple in-browser machine learning model, rl-inspired but probably simpler
 
 ## Other
 

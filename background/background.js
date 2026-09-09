@@ -9,6 +9,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   const mergedSettings = await getSettings();
   await chrome.storage.sync.set(mergedSettings);
 
+  await chrome.contextMenus.removeAll();
   chrome.contextMenus.create({
     id: "discard-tab-action",
     title: "Discard Selected Tabs",
