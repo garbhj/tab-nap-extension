@@ -28,10 +28,10 @@ To try it out, simply clone this repo, and go to chrome://extensions/, click Loa
 - Settings page for the auto-discard and other behaviour
 
 ### FIRST RELEASE CHECKPOINT GOALS
-- Options page working: jump mode, avoid discarded, try replace all icons, avoid globe icons, or not replace at all
-- Auto-discard working: NO tab weighting or prediction, just Inactive ___ min -> discard if (total active) > (set number)
-- Options page: Settings, 2-tier for inactive ___ min, and set number 
-- Batch discard from popup: discard all, discard inactive (by inactive ___ min above).
+- [ ] Options page working: jump mode, avoid discarded, try replace all icons, avoid globe icons, or not replace at all
+- [ ] Auto-discard working: NO tab weighting or prediction, just Inactive ___ min -> discard if (total active) > (set number)
+- [ ] Options page: Settings, 2-tier for inactive ___ min, and set number 
+- [ ] Batch discard from popup: discard all, discard inactive (by inactive ___ min above or n most recent).
 
 Speculative:
 - Settings in format that can be exported/imported
@@ -39,6 +39,7 @@ Speculative:
 
 
 ## Structure:
+```text
 tab-nap-extension/
 ├── manifest.json
 ├── background/
@@ -61,6 +62,7 @@ tab-nap-extension/
 │   ├── options.css
 │   └── options.js
 └── assets/icons/
+```
 
 ## Other
 

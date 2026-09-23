@@ -1,62 +1,80 @@
-import { DEFAULT_SETTINGS } from '../shared/constants.js';
-import { isFallbackTab, isRestrictedUrl } from '../shared/url.js'
-import { generateSleepingFavicon } from '../favicon/generate.js';
-import { injectFavicon, waitForFaviconUpdate } from '../favicon/inject.js'
+import { isRestrictedUrl } from "../shared/url.js";
+import { generateSleepingFavicon } from "../favicon/generate.js";
+import { getSettings } from "../shared/storage.js";
+import { handleActiveTabFocus } from "./navigation.js";
+import { injectFavicon, waitForFaviconUpdate } from "../favicon/inject.js";
 
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Redirects from activeTab to one of allTabs that is not in targetTabs, while following settings
-export async function handleActiveTabFocus(activeTab, allTabs, targetTabs, settings) {
-  // const activeSettings = settings || await getSettings();
-  const targetTabIds = new Set(targetTabs.map(t => t.id));
 
-  const availableTabs = allTabs.filter(t => {
-      if (targetTabIds.has(t.id)) return false;
-      if (settings.skipDiscarded && t.discarded) return false; // Skip discarded tabs if enabled
-      return isFallbackTab(t.url, settings.fallbackUrls);
-  });
+async function applySleepingFavicon(tab, settings) {
+  if (isRestrictedUrl(tab.url) || !tab.favIconUrl || tab.favIconUrl.startsWith('data:')) {
+    console.log(`[Favicon] Could not decorate tab ${tab.id}: Restricted URL`);
+    return;
+  }
 
-  if (availableTabs.length > 0) {
-      if (settings.jumpStrategy === "nearest") {
-      availableTabs.sort((a, b) => Math.abs(a.index - activeTab.index) - Math.abs(b.index - activeTab.index));
-      } 
-      // TODO: other strategies: nearest left, nearest right, left, right, mru, random
-      
-      await chrome.tabs.update(availableTabs[0].id, { active: true });
-  } else {
-    await chrome.tabs.create({ windowId: activeTab.windowId, active: true });
+  try {
+    const iconDataUrl = await generateSleepingFavicon(tab.url);
+    if (!iconDataUrl) return;
+
+    const updatePromise = waitForFaviconUpdate(tab.id, 1000);
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: injectFavicon,
+      args: [iconDataUrl]
+    });
+
+    const updated = await updatePromise;
+    if (updated) await delay(500);
+  } catch (err) {
+    console.warn(`[Favicon] Could not decorate tab ${tab.id}:`, err);
   }
 }
 
-export async function discardTabs(targetTabs) {
-    const discardPromises = targetTabs.map(async (targetTab) => {
-    if (!targetTab.id) return;
 
-    try {  // Inject favicon
-      // Skip favicon for globe/already-sleeping tabs to avoid stick/fade
-      if (!isRestrictedUrl(targetTab.url) && targetTab.favIconUrl && !targetTab.favIconUrl.startsWith("data:")) {
-        const sleepingIconDataUrl = await generateSleepingFavicon(targetTab.url);
-        if (sleepingIconDataUrl) {
-          const updatePromise = waitForFaviconUpdate(targetTab.id, 1000);
-          await chrome.scripting.executeScript({
-            target: { tabId: targetTab.id },
-            func: injectFavicon,
-            args: [sleepingIconDataUrl]
-          });
-          const updateFired = await updatePromise;
-          if (updateFired) await delay(500);
-        }
-      }
-    } catch (err) {
-      console.warn(`Failed to inject favicon for tab ID ${targetTab.id}:`, err);
-    }
+/**
+ * Main entry-point for discarding a list of tabs.
+ * @param {*} targetTabs 
+ */
+export async function discardTabs(tabs, customSettings = null) {
+  if (!tabs || tabs.length === 0) return;
+  const settings = customSettings || await getSettings();
+  await handleActiveTabFocus(tabs, settings);
 
-    try {  // Discard tab
-      await chrome.tabs.discard(targetTab.id);
-    } catch (err) {
-      console.warn(`Failed to discard tab ID ${targetTab.id}:`, err);
-    }
-  });
+  // Run tab discard operations in parallel
+  await Promise.allSettled(tabs.map(tab => discardSingleTab(tab, settings)));
+}
 
-  await Promise.all(discardPromises);
+export async function discardSingleTab(tab, settings) {
+  if (!tab.id || tab.discarded) return;
+  await applySleepingFavicon(tab);
+  try {
+    await chrome.tabs.discard(tab.id);
+  } catch (err) {
+    console.warn(`[Discard] Failed to discard tab ${tab.id}:`, err);
+  }
+}
+
+
+export async function discardInactiveTabs() {
+  // TODO: Use settings instead of hardcoded
+  const cutoffTime = Date.now() - 10 * 60 * 1000;
+
+  const allTabs = await chrome.tabs.query({});
+  const inactiveTabs = allTabs.filter(
+    tab => !tab.active && 
+           !tab.discarded && 
+           !tab.audible && 
+           tab.lastAccessed < cutoffTime
+  );
+
+  console.log(`[Discard] Discarding ${inactiveTabs.length} tabs (Inactive)`);
+  await discardTabs(inactiveTabs);
+}
+
+
+export async function discardAllTabs() {
+  const allTabs = await chrome.tabs.query({ discarded: false });
+  console.log(`[Discard] Discarding ${allTabs.length} tabs (All)`);
+  await discardTabs(allTabs);
 }
