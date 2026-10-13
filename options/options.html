@@ -2,24 +2,53 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Tab Sleeper</title>
-  <link rel="stylesheet" href="popup.css">
+  <title>Tab Sleeper — Options</title>
+  <link rel="stylesheet" href="options.css">
 </head>
 <body>
-<section>
-  <h2>Settings</h2>
-  <h3>Jump Mode</h3>
-  <p>Which tab to redirect to when the currently-active tab is being discarded?</p>
-  <div id="jumpModeSelector">
-    
-  </div>
-  <h3>Avoid Discarded</h3>
-  <p>Prevent jumping to discarded tabs when redirecting away from a tab being discarded.</p>
-  <div id="jumpAvoidSelector">
+  <main class="container">
+    <header>
+      <h1>Tab Sleeper <span class="ver">Options</span></h1>
+      <p class="subtitle">Controls where focus goes when the active tab is discarded, and which tabs qualify as a landing spot.</p>
+    </header>
 
+    <section>
+      <h2>Focus redirection</h2>
 
-  </div>
+      <label class="row" for="jumpStrategy">
+        <span>
+          <span class="label">Jump mode</span>
+          <span class="desc">Which fallback tab to activate when the active tab is discarded.</span>
+        </span>
+        <select id="jumpStrategy">
+          <option value="nearest">Nearest</option>
+          <option value="left">Left</option>
+          <option value="right">Right</option>
+          <option value="first">First Tab</option>
+          <option value="last">Last Tab</option>
+        </select>
+      </label>
 
-</section>
+      <label class="row" for="skipDiscarded">
+        <span>
+          <span class="label">Avoid discarded tabs</span>
+          <span class="desc">Don't jump to an already-discarded tab when redirecting.</span>
+        </span>
+        <input type="checkbox" id="skipDiscarded">
+      </label>
+    </section>
+
+    <section>
+      <h2>Fallback tabs</h2>
+      <p class="desc">One match pattern per line. <code>*</code> matches anything. A discarded active tab jumps to the nearest tab whose URL matches one of these.</p>
+      <textarea id="fallbackUrls" rows="6" spellcheck="false" placeholder="https://www.google.com/*&#10;chrome://newtab/*"></textarea>
+    </section>
+
+    <footer>
+      <button id="reset" class="btn" type="button">Reset to defaults</button>
+      <span id="status" class="status" aria-live="polite"></span>
+    </footer>
+  </main>
+  <script type="module" src="options.js"></script>
 </body>
 </html>

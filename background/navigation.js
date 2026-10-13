@@ -10,6 +10,8 @@ const JUMP_STRATEGIES = {
 
   // Fallback default
   first: (candidates) => candidates[0],
+  
+  last: (candidates) => candidates[candidates.length - 1],
 };
 
 
