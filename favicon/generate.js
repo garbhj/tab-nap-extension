@@ -1,4 +1,6 @@
-export async function generateSleepingFavicon(pageUrl) {
+import { SleepingFaviconStyle } from "../shared/constants.js";
+
+export async function generateSleepingFavicon(pageUrl, style = SleepingFaviconStyle.DOT) {
   // Using Chrome's internial favicon API
   const favUrl = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(pageUrl)}&size=32`;
   const response = await fetch(favUrl);
@@ -11,7 +13,11 @@ export async function generateSleepingFavicon(pageUrl) {
   // Default appearance: grey dot, shrunk faded logo
   ctx.filter = "saturate(0.3)";
   ctx.globalAlpha = 0.5;
-  ctx.drawImage(bitmap, 0, 0, 32, 32);  // or 4, 4, 24, 24
+  if (style === SleepingFaviconStyle.SHRUNK) {
+    ctx.drawImage(bitmap, 4, 4, 24, 24);
+  } else {
+    ctx.drawImage(bitmap, 0, 0, 32, 32);
+  }
   
   ctx.filter = "none";
   ctx.globalAlpha = 1;

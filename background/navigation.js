@@ -1,17 +1,18 @@
 import { isFallbackTab } from "../shared/url.js";
+import { JumpStrategy, DEFAULT_SETTINGS } from "../shared/constants.js";
 
 const JUMP_STRATEGIES = {
-  nearest: (candidates, activeTab) =>
+  [JumpStrategy.NEAREST]: (candidates, activeTab) =>
     [...candidates].sort((a, b) => Math.abs(a.index - activeTab.index) - Math.abs(b.index - activeTab.index))[0],
 
-  left: (candidates, activeTab) => candidates.filter((t) => t.index < activeTab.index).pop(),
+  [JumpStrategy.LEFT]: (candidates, activeTab) => candidates.filter((t) => t.index < activeTab.index).pop(),
 
-  right: (candidates, activeTab) => candidates.find((t) => t.index > activeTab.index),
+  [JumpStrategy.RIGHT]: (candidates, activeTab) => candidates.find((t) => t.index > activeTab.index),
 
   // Fallback default
-  first: (candidates) => candidates[0],
-  
-  last: (candidates) => candidates[candidates.length - 1],
+  [JumpStrategy.FIRST]: (candidates) => candidates[0],
+
+  [JumpStrategy.LAST]: (candidates) => candidates[candidates.length - 1],
 };
 
 
@@ -25,7 +26,7 @@ export function findFallbackTab(activeTab, allTabs, excludedTabIds, settings) {
 
   if (candidates.length === 0) return null;
 
-  const strategy = JUMP_STRATEGIES[settings.jumpStrategy] || JUMP_STRATEGIES.nearest;
+  const strategy = JUMP_STRATEGIES[settings.jumpStrategy] || JUMP_STRATEGIES[DEFAULT_SETTINGS.jumpStrategy];
   return strategy(candidates, activeTab) || candidates[0];
 }
 

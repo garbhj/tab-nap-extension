@@ -1,6 +1,6 @@
 // storage.js: Wrapper around chrome.storage.sync
 
-import { DEFAULT_SETTINGS } from "./constants.js";
+import { DEFAULT_SETTINGS, SETTING_OPTIONS } from "./constants.js";
 
 // Helper for merging src into tgt without needlessly mutating nested values in tgt
 export function merge(tgt, src) {
@@ -22,14 +22,58 @@ export function merge(tgt, src) {
   return result;
 }
 
+function sanitizeEnumValue(key, value) {
+  const allowed = new Set(SETTING_OPTIONS[key].map((o) => o.value));
+  return allowed.has(value) ? value : DEFAULT_SETTINGS[key];
+}
+
+// Coerce a full settings object back into valid shape (read path).
+// Unknown/invalid enum values fall back to defaults.
+export function sanitizeSettings(settings) {
+  return {
+    ...settings,
+    jumpStrategy: sanitizeEnumValue("jumpStrategy", settings.jumpStrategy),
+    replaceFaviconMode: sanitizeEnumValue("replaceFaviconMode", settings.replaceFaviconMode),
+    sleepingFaviconStyle: sanitizeEnumValue("sleepingFaviconStyle", settings.sleepingFaviconStyle),
+    skipDiscarded: typeof settings.skipDiscarded === "boolean"
+      ? settings.skipDiscarded
+      : DEFAULT_SETTINGS.skipDiscarded,
+    fallbackUrls: Array.isArray(settings.fallbackUrls)
+      ? settings.fallbackUrls.filter((u) => typeof u === "string")
+      : DEFAULT_SETTINGS.fallbackUrls,
+  };
+}
+
+// Sanitize a partial patch (write path): drop invalid
+// enum entries and wrongly-typed fields so bad writes never reach storage.
+export function sanitizePatch(patch) {
+  const clean = {};
+  for (const key of Object.keys(patch)) {
+    const value = patch[key];
+    if (value === undefined) continue;
+    if (key in SETTING_OPTIONS) {
+      if (new Set(SETTING_OPTIONS[key].map((o) => o.value)).has(value)) {
+        clean[key] = value;
+      }
+    } else if (key === "skipDiscarded") {
+      if (typeof value === "boolean") clean[key] = value;
+    } else if (key === "fallbackUrls") {
+      if (Array.isArray(value)) clean[key] = value.filter((u) => typeof u === "string");
+    } else {
+      clean[key] = value;
+    }
+  }
+  return clean;
+}
+
 export async function getSettings() {
   const stored = await chrome.storage.sync.get();
-  return merge(DEFAULT_SETTINGS, stored);
+  return sanitizeSettings(merge(DEFAULT_SETTINGS, stored));
 }
 
 export async function updateSettings(options) {
   const currentSettings = await getSettings();
-  await chrome.storage.sync.set(merge(currentSettings, options));
+  await chrome.storage.sync.set(merge(currentSettings, sanitizePatch(options)));
 }
 
 export async function resetSettings() {

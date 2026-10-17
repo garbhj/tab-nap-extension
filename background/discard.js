@@ -1,4 +1,5 @@
 import { isRestrictedUrl } from "../shared/url.js";
+import { ReplaceFaviconMode } from "../shared/constants.js";
 import { generateSleepingFavicon } from "../favicon/generate.js";
 import { getSettings } from "../shared/storage.js";
 import { handleActiveTabFocus } from "./navigation.js";
@@ -8,13 +9,19 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 
 async function applySleepingFavicon(tab, settings) {
+  if (settings.replaceFaviconMode === ReplaceFaviconMode.OFF) return;
+  // TODO: differentiate:
+  //    SAFE (skip built-in + default globe icon) vs 
+  //    RELAXED (skip built-in but not default globe icon) vs 
+  //    TRY_ALL once default-icon detection lands; 
+  // currently all non-OFF modes share the standard path below (SAFE).
   if (isRestrictedUrl(tab.url) || !tab.favIconUrl || tab.favIconUrl.startsWith('data:')) {
     console.log(`[Favicon] Could not decorate tab ${tab.id}: Restricted URL`);
     return;
   }
 
   try {
-    const iconDataUrl = await generateSleepingFavicon(tab.url);
+    const iconDataUrl = await generateSleepingFavicon(tab.url, settings.sleepingFaviconStyle);
     if (!iconDataUrl) return;
 
     const updatePromise = waitForFaviconUpdate(tab.id, 1000);
@@ -47,7 +54,7 @@ export async function discardTabs(tabs, customSettings = null) {
 
 export async function discardSingleTab(tab, settings) {
   if (!tab.id || tab.discarded) return;
-  await applySleepingFavicon(tab);
+  await applySleepingFavicon(tab, settings);
   try {
     await chrome.tabs.discard(tab.id);
   } catch (err) {

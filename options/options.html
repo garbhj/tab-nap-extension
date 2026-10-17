@@ -13,6 +13,26 @@
     </header>
 
     <section>
+      <h2>Sleeping favicons</h2>
+
+      <label class="row" for="replaceFaviconMode">
+        <span>
+          <span class="label">Replace favicons</span>
+          <span class="desc">Which tabs get a sleeping icon before being discarded.</span>
+        </span>
+        <select id="replaceFaviconMode"></select>
+      </label>
+
+      <label class="row" for="sleepingFaviconStyle">
+        <span>
+          <span class="label">Sleeping icon style</span>
+          <span class="desc">Appearance of the sleeping favicon.</span>
+        </span>
+        <select id="sleepingFaviconStyle"></select>
+      </label>
+    </section>
+
+    <section>
       <h2>Focus redirection</h2>
 
       <label class="row" for="jumpStrategy">
@@ -20,13 +40,7 @@
           <span class="label">Jump mode</span>
           <span class="desc">Which fallback tab to activate when the active tab is discarded.</span>
         </span>
-        <select id="jumpStrategy">
-          <option value="nearest">Nearest</option>
-          <option value="left">Left</option>
-          <option value="right">Right</option>
-          <option value="first">First Tab</option>
-          <option value="last">Last Tab</option>
-        </select>
+        <select id="jumpStrategy"></select>
       </label>
 
       <label class="row" for="skipDiscarded">
