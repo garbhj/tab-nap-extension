@@ -49,8 +49,7 @@ function fromLines(text) {
 }
 
 async function init() {
-  const settings = await getSettings();
-  // getSettings() sanitizes, so values always match an <option>.
+  const settings = await getSettings();  // NOTE: getSettings() sanitizes, so values always match an <option>
   jumpStrategyEl.value = settings.jumpStrategy;
   replaceFaviconModeEl.value = settings.replaceFaviconMode;
   sleepingFaviconStyleEl.value = settings.sleepingFaviconStyle;

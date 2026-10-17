@@ -1,5 +1,3 @@
-// storage.js: Wrapper around chrome.storage.sync
-
 import { DEFAULT_SETTINGS, SETTING_OPTIONS } from "./constants.js";
 
 // Helper for merging src into tgt without needlessly mutating nested values in tgt
@@ -27,8 +25,7 @@ function sanitizeEnumValue(key, value) {
   return allowed.has(value) ? value : DEFAULT_SETTINGS[key];
 }
 
-// Coerce a full settings object back into valid shape (read path).
-// Unknown/invalid enum values fall back to defaults.
+// Ensure settings object valid (read path): unknown values fall back to defaults.
 export function sanitizeSettings(settings) {
   return {
     ...settings,
@@ -44,8 +41,7 @@ export function sanitizeSettings(settings) {
   };
 }
 
-// Sanitize a partial patch (write path): drop invalid
-// enum entries and wrongly-typed fields so bad writes never reach storage.
+// Sanitize partial patch (write path): drop invalid enum entries and wrongly-typed fields.
 export function sanitizePatch(patch) {
   const clean = {};
   for (const key of Object.keys(patch)) {

@@ -7,19 +7,37 @@ import { injectFavicon, waitForFaviconUpdate } from "../favicon/inject.js";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+function shouldReplaceFavicon(tab, mode) {
+  // differentiate:
+  //    OFF (skip all)
+  //    SAFE (skip built-in/restricted + default globe icon)
+  //    RELAXED (skip built-in/restricted, still try if default globe icon)
+  //    TRY_ALL (skip none);
+  if (mode === ReplaceFaviconMode.OFF) {
+    return { allowed: false, reason: "Disabled" };
+  }
+  if (!tab.url) {  // safety
+    return { allowed: false, reason: "Missing URL" };
+  }
+  if (isRestrictedUrl(tab.url) && mode !== ReplaceFaviconMode.TRY_ALL) {
+    return { allowed: false, reason: "Restricted URL" };
+  }
+  if (!tab.favIconUrl && mode === ReplaceFaviconMode.SAFE) {
+    // NOTE: !tab.favIconUrl is what is meant by "default globe icon" above;
+    // generateSleepingFavicon() should still work as _favicon returns the default globe even with empty url,
+    // but the altered favicon may be cached aggressively and never revert to the default after reloading.
+    return { allowed: false, reason: "No favicon found" };
+  }
+  return { allowed: true };
+}
 
 async function applySleepingFavicon(tab, settings) {
-  if (settings.replaceFaviconMode === ReplaceFaviconMode.OFF) return;
-  // TODO: differentiate:
-  //    SAFE (skip built-in + default globe icon) vs 
-  //    RELAXED (skip built-in but not default globe icon) vs 
-  //    TRY_ALL once default-icon detection lands; 
-  // currently all non-OFF modes share the standard path below (SAFE).
-  if (isRestrictedUrl(tab.url) || !tab.favIconUrl || tab.favIconUrl.startsWith('data:')) {
-    console.log(`[Favicon] Could not decorate tab ${tab.id}: Restricted URL`);
+  const eligibility = shouldReplaceFavicon(tab, settings.replaceFaviconMode);
+  if (!eligibility.allowed) {
+    console.log(`[Favicon] Skipping tab ${tab.id} (mode: ${settings.replaceFaviconMode}): ${eligibility.reason}`);
     return;
   }
-
+  
   try {
     const iconDataUrl = await generateSleepingFavicon(tab.url, settings.sleepingFaviconStyle);
     if (!iconDataUrl) return;
@@ -28,7 +46,7 @@ async function applySleepingFavicon(tab, settings) {
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: injectFavicon,
-      args: [iconDataUrl]
+      args: [iconDataUrl],
     });
 
     const updated = await updatePromise;
@@ -38,18 +56,17 @@ async function applySleepingFavicon(tab, settings) {
   }
 }
 
-
 /**
  * Main entry-point for discarding a list of tabs.
- * @param {*} targetTabs 
+ * @param {*} targetTabs
  */
 export async function discardTabs(tabs, customSettings = null) {
   if (!tabs || tabs.length === 0) return;
-  const settings = customSettings || await getSettings();
+  const settings = customSettings || (await getSettings());
   await handleActiveTabFocus(tabs, settings);
 
   // Run tab discard operations in parallel
-  await Promise.allSettled(tabs.map(tab => discardSingleTab(tab, settings)));
+  await Promise.allSettled(tabs.map((tab) => discardSingleTab(tab, settings)));
 }
 
 export async function discardSingleTab(tab, settings) {
@@ -62,23 +79,18 @@ export async function discardSingleTab(tab, settings) {
   }
 }
 
-
 export async function discardInactiveTabs() {
   // TODO: Use settings instead of hardcoded
   const cutoffTime = Date.now() - 10 * 60 * 1000;
 
   const allTabs = await chrome.tabs.query({});
   const inactiveTabs = allTabs.filter(
-    tab => !tab.active && 
-           !tab.discarded && 
-           !tab.audible && 
-           tab.lastAccessed < cutoffTime
+    (tab) => !tab.active && !tab.discarded && !tab.audible && tab.lastAccessed < cutoffTime,
   );
 
   console.log(`[Discard] Discarding ${inactiveTabs.length} tabs (Inactive)`);
   await discardTabs(inactiveTabs);
 }
-
 
 export async function discardAllTabs() {
   const allTabs = await chrome.tabs.query({ discarded: false });
