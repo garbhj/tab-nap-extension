@@ -11,4 +11,12 @@ export function isFallbackTab(url, fallbackUrls) {
   return fallbackUrls.some(pattern => matchesPattern(url, pattern));
 }
 
-export const isRestrictedUrl = (url) => url.startsWith("chrome://") || url.startsWith("edge://");
+export const isRestrictedUrl = (urlString) => {
+  try {
+    const url = new URL(urlString);
+    const restrictedSchemes = ['chrome:', 'edge:', 'about:', 'chrome-extension:'];
+    return restrictedSchemes.includes(url.protocol);
+  } catch {
+    return true;
+  }
+};

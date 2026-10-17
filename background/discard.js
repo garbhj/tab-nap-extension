@@ -37,7 +37,7 @@ async function applySleepingFavicon(tab, settings) {
     console.log(`[Favicon] Skipping tab ${tab.id} (mode: ${settings.replaceFaviconMode}): ${eligibility.reason}`);
     return;
   }
-  
+
   try {
     const iconDataUrl = await generateSleepingFavicon(tab.url, settings.sleepingFaviconStyle);
     if (!iconDataUrl) return;
